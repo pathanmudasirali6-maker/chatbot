@@ -1,40 +1,28 @@
 import streamlit as st # type: ignore
-from openai import OpenAI # type: ignore
+import google.generativeai as genai # type: ignore
 
-# Title
-st.title("💬 Chatbot")
+# Gemini API Key from secrets
+genai.configure(api_key=st.secrets["AIzaSyCNXP1F4n2SQQd6FXBM5lL3fUGVvBEbr10"])
 
-st.write(
-    "This is a simple chatbot powered by OpenAI."
-)
+model = genai.GenerativeModel("gemini-2.5-flash")
 
-# API Key Input
-openai_api_key = st.text_input(
-    "OpenAI API Key",
-    type="password"
-)
+st.set_page_config(page_title="MUDASIR Chatbot")
 
-if not openai_api_key:
-    st.info("Please enter your OpenAI API key.", icon="🗝️")
-    st.stop()
+st.title("💬 MUDASIR Chatbot")
+st.caption("Developer: MUDASIR")
 
-# OpenAI Client
-client = OpenAI(api_key=openai_api_key)
-
-# Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display previous messages
+# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User Input
+# Chat input
 prompt = st.chat_input("Ask me anything...")
 
 if prompt:
-    # User Message
     st.session_state.messages.append(
         {"role": "user", "content": prompt}
     )
@@ -42,14 +30,9 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Assistant Response
     with st.chat_message("assistant"):
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=st.session_state.messages
-        )
-
-        answer = response.choices[0].message.content
+        response = model.generate_content(prompt)
+        answer = response.text
         st.markdown(answer)
 
     st.session_state.messages.append(
